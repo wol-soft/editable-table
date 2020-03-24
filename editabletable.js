@@ -17,8 +17,8 @@ $.fn.editableTableWidget = function (options) {
                 editor = opts.editor.css('position', 'absolute').hide().appendTo(element.parent());
 
                 if (opts.extendCells) {
-                    extender = $('<div id="editable-table__extend"></div>').appendTo(element.parent());
-                    extenderContainer = $('<div id="editable-table__extend-container"></div>').appendTo(element.parent());
+                    extender = $('<div class="editable-table__extend"></div>').appendTo(element.parent());
+                    extenderContainer = $('<div class="editable-table__extend-container"></div>').appendTo(element.parent());
 
                     extender.on('mousedown', function () {
                         const extenderOffset = {
