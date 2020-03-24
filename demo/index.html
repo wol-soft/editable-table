@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <link href="index.css" rel="stylesheet">
+    <link href="../editabletable.css" rel="stylesheet">
+    <script src="../editabletable.js"></script>
+    <script src="numeric-input-example.js"></script>
+  </head>
+  <body>
+  <div class="container">
+    <h1>editableTableWidget<br/> <small>tiny editable jQuery Bootstrap spreadsheet</small></h1>
+    <hr/>
+    <div class="alert alert-error hide">
+      That would cost too much
+    </div>
+      <table id="mainTable" class="table table-striped">
+        <thead><tr><th>Name</th><th>Cost</th><th>Profit</th><th>Fun</th></tr></thead>
+        <tbody>
+          <tr><td>Car</td><td>100</td><td>200</td><td>0</td></tr>
+          <tr><td>Bike</td><td>330</td><td>240</td><td>1</td></tr>
+          <tr><td>Plane</td><td>430</td><td>540</td><td>3</td></tr>
+          <tr><td>Yacht</td><td>100</td><td>200</td><td>0</td></tr>
+          <tr><td>Segway</td><td>330</td><td>240</td><td>1</td></tr>
+        </tbody>
+        <tfoot><tr><th><strong>TOTAL</strong></th><th></th><th></th><th></th></tr></tfoot>
+      </table>
+      <h2><small>just start typing to edit, or move around with arrow keys or mouse clicks!</small></h2>
+    </div>
+    <script>
+        $('#mainTable').editableTableWidget({extendCells: true}).numericInputExample().find('td:first').focus();
+    </script>
+  </body>
+</html>

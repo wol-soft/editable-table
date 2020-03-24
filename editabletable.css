@@ -1,0 +1,26 @@
+
+#editable-table__extend {
+    width: 8px;
+    height: 8px;
+    margin-top: -10px;
+    margin-left: -10px;
+    position: absolute;
+    background-color: darkgreen;
+    display: none;
+}
+
+#editable-table__extend:hover {
+    cursor: crosshair;
+}
+
+#editable-table__extend-container {
+    background-color: lightgray;
+    border: 2px dotted #3e3e3e;
+    opacity: 0.5;
+    position: absolute;
+    display: none;
+}
+
+.editable-table__extend__active-cell {
+    background-color: rgba(0, 129, 18, 0.33);
+}

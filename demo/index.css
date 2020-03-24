@@ -31,20 +31,3 @@ input {
 #mainTable td + td, #mainTable th + th {
 	text-align: right;
 }
-table.scrollable thead tr, table.scrollable tfoot tr  {
-	position: relative;
-	display: block
-}
-
-html>body table.scrollable tbody {
-	display: block;
-	height: 330px;
-	overflow: auto;
-	width: 100%
-}
-
-html>body table.scrollable td, html>body table.scrollable th {
-	width: 200px
-}
-
-
