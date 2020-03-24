@@ -82,14 +82,14 @@ $.fn.editableTableWidget = function (options) {
                             blockBlur = false;
                             extenderContainer.hide();
 
-                            $('.editable-table__extend__active-cell')
-                                .text(active.text())
-                                .removeClass('editable-table__extend__active-cell');
-
                             active.blur();
 
                             setActiveText();
                             hideEditor();
+
+                            $('.editable-table__extend__active-cell')
+                                .text(active.text())
+                                .removeClass('editable-table__extend__active-cell');
                         });
                     });
 
