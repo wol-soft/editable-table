@@ -35,8 +35,8 @@ $.fn.editableTableWidget = function (options) {
                             .offset(extenderOffset);
 
                         $(window).on('mousemove.editable-table', function (e) {
-                            let height = e.clientY - extenderOffset.top + 3,
-                                width = e.clientX - extenderOffset.left + 3;
+                            let height = (window.scrollY + e.clientY) - extenderOffset.top + 3,
+                                width = (window.scrollX + e.clientX) - extenderOffset.left + 3;
 
                             if (height < 3) {
                                 height -= 6;
