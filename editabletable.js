@@ -12,88 +12,101 @@ $.fn.editableTableWidget = function (options) {
                 opts.editor = opts.editor.clone();
                 return opts;
             },
+            initExtendCells = function () {
+                extender = $('<div class="editable-table__extend"></div>').appendTo(element.parent());
+                extenderContainer = $('<div class="editable-table__extend-container"></div>').appendTo(element.parent());
+
+                extender.on('mousedown', function () {
+                    const extenderOffset = {
+                        top: extender.offset().top + 4,
+                        left: extender.offset().left + 4,
+                    };
+
+                    blockBlur = true;
+
+                    extenderContainer
+                        .width(0)
+                        .height(0)
+                        .show()
+                        .offset(extenderOffset);
+
+                    $(window).on('mousemove.editable-table.extend-cell', function (e) {
+                        let height = (window.scrollY + e.clientY) - extenderOffset.top + 3,
+                            width = (window.scrollX + e.clientX) - extenderOffset.left + 3;
+
+                        if (height < 3) {
+                            height -= 6;
+                        }
+                        if (width < 3) {
+                            width -= 6;
+                        }
+
+                        extenderContainer
+                            .offset({
+                                top: height < 0 ? extenderOffset.top + height : extenderOffset.top,
+                                left: width < 0 ? extenderOffset.left + width : extenderOffset.left,
+                            })
+                            .height(Math.abs(height))
+                            .width(Math.abs(width));
+
+                        const containerLeft = (width < 0 ? extenderOffset.left + width : extenderOffset.left) + 10,
+                            containerTop = (height < 0 ? extenderOffset.top + height : extenderOffset.top) + 10,
+                            containerRight = (width < 0 ? extenderOffset.left : extenderOffset.left + width) - 15,
+                            containerBottom = (height < 0 ? extenderOffset.top : extenderOffset.top + height) - 10;
+
+                        $.each(element.find('td'), function (index, element) {
+                            element = $(element);
+                            const elementOffset = element.offset(),
+                                right = elementOffset.left + element.width(),
+                                bottom = elementOffset.top + element.height();
+
+                            if (containerBottom < elementOffset.top || containerTop > bottom ||
+                                containerRight < elementOffset.left || containerLeft > right
+                            ) {
+                                element.removeClass('editable-table__extend__active-cell');
+                                return;
+                            }
+                            element.addClass('editable-table__extend__active-cell');
+                        });
+                    });
+
+                    $(window).on('mouseup.editable-table.extend-cell keydown.editable-table.extend-cell', function (e) {
+                        if (e.type === 'keydown' && e.which !== ESC) {
+                            return;
+                        }
+
+                        $(window)
+                            .off('keydown.editable-table.extend-cell')
+                            .off('mouseup.editable-table.extend-cell')
+                            .off('mousemove.editable-table.extend-cell');
+
+                        blockBlur = false;
+                        extenderContainer.hide();
+
+                        active.blur();
+
+                        setActiveText();
+                        hideEditor();
+
+                        const elements = $('.editable-table__extend__active-cell');
+                        elements.removeClass('editable-table__extend__active-cell');
+
+                        if (e.type === 'keydown') {
+                            return;
+                        }
+
+                        elements.text(active.text());
+                    });
+                });
+
+                extender.on('mouseleave', () => blockBlur = false);
+            },
             getOptions = function (options) {
                 const opts = $.extend(buildDefaultOptions(), options);
                 editor = opts.editor.css('position', 'absolute').hide().appendTo(element.parent());
 
                 if (opts.extendCells) {
-                    extender = $('<div class="editable-table__extend"></div>').appendTo(element.parent());
-                    extenderContainer = $('<div class="editable-table__extend-container"></div>').appendTo(element.parent());
-
-                    extender.on('mousedown', function () {
-                        const extenderOffset = {
-                            top: extender.offset().top + 4,
-                            left: extender.offset().left + 4,
-                        };
-
-                        blockBlur = true;
-
-                        extenderContainer
-                            .width(0)
-                            .height(0)
-                            .show()
-                            .offset(extenderOffset);
-
-                        $(window).on('mousemove.editable-table', function (e) {
-                            let height = (window.scrollY + e.clientY) - extenderOffset.top + 3,
-                                width = (window.scrollX + e.clientX) - extenderOffset.left + 3;
-
-                            if (height < 3) {
-                                height -= 6;
-                            }
-                            if (width < 3) {
-                                width -= 6;
-                            }
-
-                            extenderContainer
-                                .offset({
-                                    top: height < 0 ? extenderOffset.top + height : extenderOffset.top,
-                                    left: width < 0 ? extenderOffset.left + width : extenderOffset.left,
-                                })
-                                .height(Math.abs(height))
-                                .width(Math.abs(width));
-
-                            const containerLeft = (width < 0 ? extenderOffset.left + width : extenderOffset.left) + 10,
-                                  containerTop = (height < 0 ? extenderOffset.top + height : extenderOffset.top) + 10,
-                                  containerRight = (width < 0 ? extenderOffset.left : extenderOffset.left + width) - 15,
-                                  containerBottom = (height < 0 ? extenderOffset.top : extenderOffset.top + height) - 10;
-
-                            $.each(element.find('td'), function (index, element) {
-                                element = $(element);
-                                const elementOffset = element.offset(),
-                                      right = elementOffset.left + element.width(),
-                                      bottom = elementOffset.top + element.height();
-
-                                if (containerBottom < elementOffset.top || containerTop > bottom ||
-                                    containerRight < elementOffset.left || containerLeft > right
-                                ) {
-                                    element.removeClass('editable-table__extend__active-cell');
-                                    return;
-                                }
-                                element.addClass('editable-table__extend__active-cell');
-                            });
-                        });
-
-                        $(window).on('mouseup.editable-table', function () {
-                            $(window)
-                                .off('mouseup.editable-table')
-                                .off('mousemove.editable-table');
-
-                            blockBlur = false;
-                            extenderContainer.hide();
-
-                            active.blur();
-
-                            setActiveText();
-                            hideEditor();
-
-                            $('.editable-table__extend__active-cell')
-                                .text(active.text())
-                                .removeClass('editable-table__extend__active-cell');
-                        });
-                    });
-
-                    extender.on('mouseleave', () => blockBlur = false);
+                    initExtendCells();
                 }
 
                 return opts;
