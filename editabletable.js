@@ -50,9 +50,9 @@ $.fn.editableTableWidget = function (options) {
                             .width(Math.abs(width));
 
                         const containerLeft = (width < 0 ? extenderOffset.left + width : extenderOffset.left) + 10,
-                            containerTop = (height < 0 ? extenderOffset.top + height : extenderOffset.top) + 10,
-                            containerRight = (width < 0 ? extenderOffset.left : extenderOffset.left + width) - 15,
-                            containerBottom = (height < 0 ? extenderOffset.top : extenderOffset.top + height) - 10;
+                              containerTop = (height < 0 ? extenderOffset.top + height : extenderOffset.top) + 10,
+                              containerRight = (width < 0 ? extenderOffset.left : extenderOffset.left + width) - 15,
+                              containerBottom = (height < 0 ? extenderOffset.top : extenderOffset.top + height) - 10;
 
                         $.each(element.find('td'), function (index, element) {
                             element = $(element);
@@ -155,16 +155,11 @@ $.fn.editableTableWidget = function (options) {
             },
             setActiveText = function () {
                 var text = editor.val(),
-                    evt = $.Event('change'),
-                    originalContent;
+                    evt = $.Event('change');
                 if (active.text() === text || editor.hasClass('error')) {
                     return true;
                 }
-                originalContent = active.html();
                 active.text(text).trigger(evt, text);
-                if (evt.result === false) {
-                    active.html(originalContent);
-                }
             },
             movement = function (element, keycode) {
                 if (keycode === ARROW_RIGHT) {
@@ -178,15 +173,13 @@ $.fn.editableTableWidget = function (options) {
                 }
                 return [];
             };
-        editor.blur(function (e) {
+        editor.blur(function () {
             if (blockBlur) {
                 return;
             }
 
-            window.setTimeout(function () {
-                setActiveText();
-                hideEditor();
-            }, 100);
+            setActiveText();
+            hideEditor();
         }).keydown(function (e) {
             if (e.which === ENTER) {
                 setActiveText();
