@@ -30,7 +30,11 @@
       <h2><small>just start typing to edit, or move around with arrow keys or mouse clicks!</small></h2>
     </div>
     <script>
-        $('#mainTable').editableTableWidget({extendCells: true}).numericInputExample().find('td:first').focus();
+        $('#mainTable')
+            .editableTableWidget({preventColumns: [1], extendCells: true})
+            .numericInputExample()
+            .find('td:first')
+            .focus();
     </script>
   </body>
 </html>

@@ -61,7 +61,8 @@ $.fn.editableTableWidget = function (options) {
                                 bottom = elementOffset.top + element.height();
 
                             if (containerBottom < elementOffset.top || containerTop > bottom ||
-                                containerRight < elementOffset.left || containerLeft > right
+                                containerRight < elementOffset.left || containerLeft > right ||
+                                element.hasClass('editable-table__prevent-edit')
                             ) {
                                 element.removeClass('editable-table__extend__active-cell');
                                 return;
@@ -95,7 +96,9 @@ $.fn.editableTableWidget = function (options) {
                             return;
                         }
 
-                        elements.text(active.text());
+                        elements.text(active.text())
+                            .trigger('change', active.text())
+                            .trigger('validate', active.text());
                     });
                 });
 
@@ -104,6 +107,14 @@ $.fn.editableTableWidget = function (options) {
             getOptions = function (options) {
                 const opts = $.extend(buildDefaultOptions(), options);
                 editor = opts.editor.css('position', 'absolute').hide().appendTo(element.parent());
+
+                // identify columns which shall not be edited via class
+                $.each(
+                    opts.preventColumns,
+                    (index, column) => element
+                        .find(`td:nth-of-type(${column})`)
+                        .addClass('editable-table__prevent-edit')
+                );
 
                 if (opts.extendCells) {
                     initExtendCells();
