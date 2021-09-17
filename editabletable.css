@@ -22,5 +22,5 @@
 }
 
 .editable-table__extend__active-cell {
-    background-color: rgba(0, 129, 18, 0.33);
+    background-color: rgba(0, 129, 18, 0.33) !important;
 }
