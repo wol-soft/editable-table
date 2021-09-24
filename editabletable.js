@@ -106,7 +106,7 @@ $.fn.editableTableWidget = function (options) {
             },
             getOptions = function (options) {
                 const opts = $.extend(buildDefaultOptions(), options);
-                editor = opts.editor.css('position', 'absolute').hide().appendTo(element.parent());
+                editor = opts.editor.hide().appendTo(element.parent());
 
                 // identify columns which shall not be edited via class
                 $.each(
@@ -284,7 +284,7 @@ $.fn.editableTableWidget.defaultOptions = {
         'border-left',
         'border-right'
     ],
-    editor: $('<input>'),
+    editor: $('<input class="editable-table__editor">'),
     preventColumns: [],
     extendCells: false,
 };
