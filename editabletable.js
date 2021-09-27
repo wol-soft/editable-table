@@ -129,7 +129,9 @@ $.fn.editableTableWidget = function (options) {
                 active = element.find('td:focus');
 
                 // Prevent edit of the columns specified
-                if ($.inArray(active.index() + 1, activeOptions.preventColumns) !== -1) {
+                if ($.inArray(active.index() + 1, activeOptions.preventColumns) !== -1
+                    || active.hasClass('editable-table__prevent-edit')
+                ) {
                     active.blur();
                     return;
                 }
