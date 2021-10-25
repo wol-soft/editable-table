@@ -2,19 +2,22 @@
 $.fn.editableTableWidget = function (options) {
     'use strict';
     return $(this).each(function () {
-        var editor,
+        var activeEditor,
+            defaultEditor,
+            customInputSelector = 'input',
             extender,
             extenderContainer,
             element = $(this),
             blockBlur = false,
+            container = (element.is('table') ? element : element.closest('table')).parent(),
             buildDefaultOptions = function () {
                 var opts = $.extend({}, $.fn.editableTableWidget.defaultOptions);
                 opts.editor = opts.editor.clone();
                 return opts;
             },
             initExtendCells = function () {
-                extender = $('<div class="editable-table__extend"></div>').appendTo(element.parent());
-                extenderContainer = $('<div class="editable-table__extend-container"></div>').appendTo(element.parent());
+                extender = $('<div class="editable-table__extend"></div>').appendTo(container);
+                extenderContainer = $('<div class="editable-table__extend-container"></div>').appendTo(container);
 
                 extender.on('mousedown', function () {
                     const extenderOffset = {
@@ -105,8 +108,14 @@ $.fn.editableTableWidget = function (options) {
                 extender.on('mouseleave', () => blockBlur = false);
             },
             getOptions = function (options) {
+                container.find('.editable-table__editor').remove();
+
+                const buildEditor = (editor) => editor.addClass('editable-table__editor').hide().appendTo(container);
                 const opts = $.extend(buildDefaultOptions(), options);
-                editor = opts.editor.hide().appendTo(element.parent());
+                defaultEditor = activeEditor = buildEditor(opts.editor);
+
+                // attach custom editors to the DOM
+                $.each(opts.columnEditor, (index, editor) => buildEditor(editor.editor || editor));
 
                 // identify columns which shall not be edited via class
                 $.each(
@@ -136,15 +145,27 @@ $.fn.editableTableWidget = function (options) {
                     return;
                 }
 
+                activeEditor = activeOptions.columnEditor[active.index() + 1] || defaultEditor;
+
+                if (activeEditor.editor) {
+                    customInputSelector = activeEditor.inputSelector;
+                    activeEditor = activeEditor.editor;
+                } else {
+                    customInputSelector = 'input';
+                }
+
                 if (active.length) {
-                    editor.val(active.text())
-                        .removeClass('error')
+                    (activeEditor.is('input') ? activeEditor : activeEditor.find(customInputSelector))
+                        .val(active.text());
+
+                    activeEditor.removeClass('error')
                         .show()
                         .offset(active.offset())
                         .css(active.css(activeOptions.cloneProperties))
                         .width(active.width())
-                        .height(active.height())
-                        .focus();
+                        .height(active.height());
+
+                    activeEditor.is('input') ? activeEditor.focus() : activeEditor.find(customInputSelector).focus();
 
                     if (activeOptions.extendCells) {
                         const offset = active.offset();
@@ -155,23 +176,46 @@ $.fn.editableTableWidget = function (options) {
                         extender.show().offset(offset);
                     }
                     if (select) {
-                        editor.select();
+                        activeEditor.is('input')
+                            ? activeEditor.select()
+                            : activeEditor.find(customInputSelector).select();
                     }
+
+                    activeEditor.trigger('show', active);
                 }
             },
             hideEditor = function () {
-                editor.hide();
+                activeEditor.hide();
+                activeEditor.trigger('hide', active);
+
+                validate();
 
                 if (activeOptions.extendCells) {
                     extender.hide();
                 }
             },
+            validate = function () {
+                var evt = $.Event('validate');
+
+                active.trigger(
+                    evt,
+                    activeEditor.is('input') ? activeEditor.val() : activeEditor.find(customInputSelector).val(),
+                );
+
+                if (evt.result === false) {
+                    activeEditor.addClass('error');
+                } else {
+                    activeEditor.removeClass('error');
+                }
+            },
             setActiveText = function () {
-                var text = editor.val(),
+                var text = activeEditor.is('input') ? activeEditor.val() : activeEditor.find(customInputSelector).val(),
                     evt = $.Event('change');
-                if (active.text() === text || editor.hasClass('error')) {
+
+                if (active.text() === text || activeEditor.hasClass('error')) {
                     return true;
                 }
+
                 active.text(text).trigger(evt, text);
             },
             movement = function (element, keycode) {
@@ -186,46 +230,54 @@ $.fn.editableTableWidget = function (options) {
                 }
                 return [];
             };
-        editor.blur(function () {
-            if (blockBlur) {
-                return;
-            }
 
-            setActiveText();
-            hideEditor();
-        }).keydown(function (e) {
-            if (e.which === ENTER) {
+        [
+            defaultEditor,
+            ...Object.values(activeOptions.columnEditor).map(
+                (e) => e.inputSelector
+                    ? e.editor.find(e.inputSelector)
+                    : (e.editor || e)
+            ),
+        ].forEach(
+            (editor) => editor.blur(function () {
+                if (blockBlur) {
+                    return;
+                }
+
                 setActiveText();
                 hideEditor();
-                active.focus();
-                e.preventDefault();
-                e.stopPropagation();
-            } else if (e.which === ESC) {
-                editor.val(active.text());
-                e.preventDefault();
-                e.stopPropagation();
-                hideEditor();
-                active.focus();
-            } else if (e.which === TAB) {
-                active.focus();
-            } else if (this.selectionEnd - this.selectionStart === this.value.length) {
-                var possibleMove = movement(active, e.which);
-                if (possibleMove.length > 0) {
-                    possibleMove.focus();
+            }).keydown(function (e) {
+                if (e.which === ENTER) {
+                    setActiveText();
+                    hideEditor();
+                    active.focus();
                     e.preventDefault();
                     e.stopPropagation();
+                } else if (e.which === ESC) {
+                    activeEditor.is('input')
+                        ? activeEditor.val(active.text())
+                        : activeEditor.find(customInputSelector).val(active.text());
+
+                    e.preventDefault();
+                    e.stopPropagation();
+                    hideEditor();
+                    active.focus();
+                } else if (e.which === TAB) {
+                    active.focus();
+                } else if (this.selectionEnd - this.selectionStart === this.value.length) {
+                    var possibleMove = movement(active, e.which);
+                    if (possibleMove.length > 0) {
+                        possibleMove.focus();
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
                 }
-            }
-        })
-            .on('input paste', function () {
-                var evt = $.Event('validate');
-                active.trigger(evt, editor.val());
-                if (evt.result === false) {
-                    editor.addClass('error');
-                } else {
-                    editor.removeClass('error');
-                }
-            });
+            })
+                .on('input paste', function () {
+                    validate();
+                })
+        );
+
         element.on('click keypress dblclick', showEditor)
             .css('cursor', 'pointer')
             .keydown(function (e) {
@@ -250,8 +302,8 @@ $.fn.editableTableWidget = function (options) {
         element.find('td').prop('tabindex', 1);
 
         $(window).on('resize', function () {
-            if (editor.is(':visible')) {
-                editor.offset(active.offset())
+            if (activeEditor.is(':visible')) {
+                activeEditor.offset(active.offset())
                     .width(active.width())
                     .height(active.height());
 
@@ -266,8 +318,8 @@ $.fn.editableTableWidget = function (options) {
             }
         });
     });
-
 };
+
 $.fn.editableTableWidget.defaultOptions = {
     cloneProperties: [
         'padding',
@@ -286,8 +338,8 @@ $.fn.editableTableWidget.defaultOptions = {
         'border-left',
         'border-right'
     ],
-    editor: $('<input class="editable-table__editor">'),
+    editor: $('<input />'),
     preventColumns: [],
+    columnEditor: {},
     extendCells: false,
 };
-

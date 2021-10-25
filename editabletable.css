@@ -12,6 +12,7 @@
     position: absolute;
     background-color: darkgreen;
     display: none;
+    z-index: 2071;
 }
 
 .editable-table__extend:hover {
@@ -24,6 +25,7 @@
     opacity: 0.5;
     position: absolute;
     display: none;
+    z-index: 2071;
 }
 
 .editable-table__extend__active-cell {
