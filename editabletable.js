@@ -16,6 +16,9 @@ $.fn.editableTableWidget = function (options) {
                 return opts;
             },
             initExtendCells = function () {
+                // make initialization idempotent by not adding the elements multiple times
+                container.find('.editable-table__extend, .editable-table__extend-container').remove();
+
                 extender = $('<div class="editable-table__extend"></div>').appendTo(container);
                 extenderContainer = $('<div class="editable-table__extend-container"></div>').appendTo(container);
 
@@ -60,8 +63,8 @@ $.fn.editableTableWidget = function (options) {
                         $.each(element.find('td'), function (index, element) {
                             element = $(element);
                             const elementOffset = element.offset(),
-                                right = elementOffset.left + element.width(),
-                                bottom = elementOffset.top + element.height();
+                                  right = elementOffset.left + element.width(),
+                                  bottom = elementOffset.top + element.height();
 
                             if (containerBottom < elementOffset.top || containerTop > bottom ||
                                 containerRight < elementOffset.left || containerLeft > right ||
