@@ -222,16 +222,27 @@ $.fn.editableTableWidget = function (options) {
                 active.text(text).trigger(evt, text);
             },
             movement = function (element, keycode) {
+                let moveCallback = null;
+
                 if (keycode === ARROW_RIGHT) {
-                    return element.next('td');
+                    moveCallback = (element) => element.next('td');
                 } else if (keycode === ARROW_LEFT) {
-                    return element.prev('td');
+                    moveCallback = (element) => element.prev('td');
                 } else if (keycode === ARROW_UP) {
-                    return element.parent().prev().children().eq(element.index());
+                    moveCallback = (element) => element.parent().prev().children().eq(element.index());
                 } else if (keycode === ARROW_DOWN) {
-                    return element.parent().next().children().eq(element.index());
+                    moveCallback = (element) => element.parent().next().children().eq(element.index());
                 }
-                return [];
+
+                if (!moveCallback) {
+                    return [];
+                }
+
+                do {
+                    element = moveCallback(element);
+                } while (element && $(element).hasClass('editable-table__prevent-edit'));
+
+                return element;
             };
 
         [
@@ -302,7 +313,7 @@ $.fn.editableTableWidget = function (options) {
                 }
             });
 
-        element.find('td').prop('tabindex', 1);
+        element.find('td:not(.editable-table__prevent-edit)').prop('tabindex', 1);
 
         $(window).on('resize', function () {
             if (activeEditor.is(':visible')) {
