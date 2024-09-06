@@ -158,8 +158,18 @@ $.fn.editableTableWidget = function (options) {
                 }
 
                 if (active.length) {
-                    (activeEditor.is('input') ? activeEditor : activeEditor.find(customInputSelector))
-                        .val(active.text());
+                    const inputElement = activeEditor.is('input')
+                        ? activeEditor
+                        : activeEditor.find(customInputSelector);
+
+                    inputElement.val(active.text());
+
+                    ['minlength', 'maxlength', 'required', 'pattern'].forEach((validationRule) => {
+                        const validationRuleValue = active.attr(validationRule);
+                        if (validationRuleValue) {
+                            inputElement.attr(validationRule, validationRuleValue);
+                        }
+                    });
 
                     activeEditor.removeClass('error')
                         .show()
@@ -168,7 +178,7 @@ $.fn.editableTableWidget = function (options) {
                         .width(active.width())
                         .height(active.height());
 
-                    activeEditor.is('input') ? activeEditor.focus() : activeEditor.find(customInputSelector).focus();
+                    inputElement.focus();
 
                     if (activeOptions.extendCells) {
                         const offset = active.offset();
@@ -198,14 +208,23 @@ $.fn.editableTableWidget = function (options) {
                 }
             },
             validate = function () {
-                var evt = $.Event('validate');
+                var evt          = $.Event('validate'),
+                    inputElement = activeEditor.is('input') ? activeEditor : activeEditor.find(customInputSelector),
+                    value        = inputElement.val();
 
-                active.trigger(
-                    evt,
-                    activeEditor.is('input') ? activeEditor.val() : activeEditor.find(customInputSelector).val(),
+                active.trigger(evt, value);
+
+                const baseValidations = Object.values({
+                    minlength: () => !inputElement.attr('minlength') || value.length >= inputElement.attr('minlength'),
+                    maxlength: () => !inputElement.attr('maxlength') || value.length <= inputElement.attr('maxlength'),
+                    required:  () => !inputElement.attr('required') || value.length,
+                    pattern:   () => !inputElement.attr('pattern') || new RegExp(inputElement.attr('pattern')).test(value),
+                }).reduce(
+                    (previous, callback) => previous && callback(),
+                    true
                 );
 
-                if (evt.result === false) {
+                if (!baseValidations || evt.result === false) {
                     activeEditor.addClass('error');
                 } else {
                     activeEditor.removeClass('error');
