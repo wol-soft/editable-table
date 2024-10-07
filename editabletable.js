@@ -178,6 +178,8 @@ $.fn.editableTableWidget = function (options) {
                         .width(active.width())
                         .height(active.height());
 
+                    active.addClass('editable-table__td-active');
+
                     inputElement.focus();
 
                     if (activeOptions.extendCells) {
@@ -200,6 +202,7 @@ $.fn.editableTableWidget = function (options) {
             hideEditor = function () {
                 activeEditor.hide();
                 activeEditor.trigger('hide', active);
+                active.removeClass('editable-table__td-active');
 
                 validate();
 
@@ -284,15 +287,21 @@ $.fn.editableTableWidget = function (options) {
                     setActiveText();
                     hideEditor();
                     active.focus();
-                    e.preventDefault();
-                    e.stopPropagation();
+
+                    if (!activeOptions.propagateKeyboardEvents) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
                 } else if (e.which === ESC) {
                     activeEditor.is('input')
                         ? activeEditor.val(active.text())
                         : activeEditor.find(customInputSelector).val(active.text());
 
-                    e.preventDefault();
-                    e.stopPropagation();
+                    if (!activeOptions.propagateKeyboardEvents) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+
                     hideEditor();
                     active.focus();
                 } else if (e.which === TAB) {
@@ -301,8 +310,11 @@ $.fn.editableTableWidget = function (options) {
                     var possibleMove = movement(active, e.which);
                     if (possibleMove.length > 0) {
                         possibleMove.focus();
-                        e.preventDefault();
-                        e.stopPropagation();
+
+                        if (!activeOptions.propagateKeyboardEvents) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }
                     }
                 }
             })
@@ -326,7 +338,7 @@ $.fn.editableTableWidget = function (options) {
                 } else {
                     prevent = false;
                 }
-                if (prevent) {
+                if (prevent && !activeOptions.propagateKeyboardEvents) {
                     e.stopPropagation();
                     e.preventDefault();
                 }
@@ -375,4 +387,5 @@ $.fn.editableTableWidget.defaultOptions = {
     preventColumns: [],
     columnEditor: {},
     extendCells: false,
+    propagateKeyboardEvents: false,
 };
